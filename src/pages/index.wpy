@@ -1,0 +1,406 @@
+<template>
+  <view class="container">
+    <!-- 搜索框 -->
+    <view class="search">
+      <view class="inner">
+        <text class="iconfont icon-sousuo"></text>
+        <text class="txt">搜索</text>
+      </view>
+    </view>
+
+    <!-- 轮播图 -->
+    <swiper
+      indicator-dots="{{ true }}"
+      autoplay="{{ ture }}"
+      interval="{{ 3000 }}"
+      duration="{{ 300 }}"
+      circular="{{ true }}"
+      class="slides">
+      <swiper-item wx:for="{{ slides }}" wx:key="index">
+        <navigator url="{{ item.navigator_url }}" open-type="{{ item.open_type }}">
+          <image src="{{ item.image_src }}"></image>
+        </navigator>
+      </swiper-item>
+    </swiper>
+
+    <!-- 导航 -->
+    <view class="nav">
+      <view class="nav-item" wx:for="{{ navs }}" wx:key="name">
+        <navigator url="{{ item.navigator_url }}" open-type="{{ item.open_type }}">
+          <image src="{{ item.image_src }}"></image>
+        </navigator>
+      </view>
+    </view>
+
+    <!-- 楼层 -->
+    <view class="floor">
+      <view class="floor-item" wx:for="{{ floors }}" wx:key="index">
+        <view class="title">
+          <image src="{{ item.floor_title.image_src }}"></image>
+        </view>
+        <view class="content">
+          <view class="left-image">
+            <image src="{{ item.product_list[0].image_src }}" style="width: {{ item.product_list[0].image_width }}rpx;"></image>
+          </view>
+          <view class="right-images">
+            <image
+            wx:for="{{ item.product_list }}"
+            wx:key="index"
+            wx:for-item="image"
+            wx:for-index="i"
+            src="{{ image.image_src }}"
+            wx:if="{{ i != 0 }}"
+            style="width: {{ image.image_width }}rpx;"
+            ></image>
+          </view>
+      </view>
+      </view>
+    </view>
+
+    <!-- 回顶部 -->
+    <view class="toTop" @tap="goTop" hidden="{{ isShow }}">
+      <text class="iconfont icon-jiantoushang"></text>
+      <text class="toToTxt">顶部</text>
+    </view>
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import fetch from '../utils/fetch.js'
+
+const floorData = {
+  data: [
+    {
+      floor_title: {
+        name: '时尚女装',
+        image_src: 'http://hucongcong.cn:8080/upload/pic_floor01_title.png'
+      },
+      product_list: [
+        {
+          name: '优质服饰',
+          image_src: 'http://hucongcong.cn:8080/upload/pic_floor01_1@2x.png',
+          image_width: '232',
+          open_type: 'navigate',
+          navigator_url: '/pages/goods_list?query=服饰'
+        },
+        {
+          name: '春季热门',
+          image_src: 'http://hucongcong.cn:8080/upload/pic_floor01_2@2x.png',
+          image_width: '233',
+          open_type: 'navigate',
+          navigator_url: '/pages/goods_list?query=热'
+        },
+        {
+          name: '爆款清仓',
+          image_src: 'http://hucongcong.cn:8080/upload/pic_floor01_3@2x.png',
+          image_width: '233',
+          open_type: 'navigate',
+          navigator_url: '/pages/goods_list?query=爆款'
+        },
+        {
+          name: '倒春寒',
+          image_src: 'http://hucongcong.cn:8080/upload/pic_floor01_4@2x.png',
+          image_width: '233',
+          open_type: 'navigate',
+          navigator_url: '/pages/goods_list?query=春季'
+        },
+        {
+          name: '怦然心动',
+          image_src: 'http://hucongcong.cn:8080/upload/pic_floor01_5@2x.png',
+          image_width: '233',
+          open_type: 'navigate',
+          navigator_url: '/pages/goods_list?query=心动'
+        }
+      ]
+    },
+    {
+      floor_title: {
+        name: '户外活动',
+        image_src: 'http://hucongcong.cn:8080/upload/pic_floor02_title.png'
+      },
+      product_list: [
+        {
+          name: '勇往直前',
+          image_src: 'http://hucongcong.cn:8080/upload/pic_floor02_1@2x.png',
+          image_width: '232',
+          open_type: 'navigate',
+          navigator_url: '/pages/goods_list?query=户外'
+        },
+        {
+          name: '户外登山包',
+          image_src: 'http://hucongcong.cn:8080/upload/pic_floor02_2@2x.png',
+          image_width: '273',
+          open_type: 'navigate',
+          navigator_url: '/pages/goods_list?query=登山包'
+        },
+        {
+          name: '超强手套',
+          image_src: 'http://hucongcong.cn:8080/upload/pic_floor02_3@2x.png',
+          image_width: '193',
+          open_type: 'navigate',
+          navigator_url: '/pages/goods_list?query=手套'
+        },
+        {
+          name: '户外运动鞋',
+          image_src: 'http://hucongcong.cn:8080/upload/pic_floor02_4@2x.png',
+          image_width: '193',
+          open_type: 'navigate',
+          navigator_url: '/pages/goods_list?query=运动鞋'
+        },
+        {
+          name: '冲锋衣系列',
+          image_src: 'http://hucongcong.cn:8080/upload/pic_floor02_5@2x.png',
+          image_width: '273',
+          open_type: 'navigate',
+          navigator_url: '/pages/goods_list?query=冲锋衣'
+        }
+      ]
+    },
+    {
+      floor_title: {
+        name: '箱包配饰',
+        image_src: 'http://hucongcong.cn:8080/upload/pic_floor03_title.png'
+      },
+      product_list: [
+        {
+          name: '清新气质',
+          image_src: 'http://hucongcong.cn:8080/upload/pic_floor03_1@2x.png',
+          image_width: '232',
+          open_type: 'navigate',
+          navigator_url: '/pages/goods_list?query=饰品'
+        },
+        {
+          name: '复古胸针',
+          image_src: 'http://hucongcong.cn:8080/upload/pic_floor03_2@2x.png',
+          image_width: '263',
+          open_type: 'navigate',
+          navigator_url: '/pages/goods_list?query=胸针'
+        },
+        {
+          name: '韩版手链',
+          image_src: 'http://hucongcong.cn:8080/upload/pic_floor03_3@2x.png',
+          image_width: '203',
+          open_type: 'navigate',
+          navigator_url: '/pages/goods_list?query=手链'
+        },
+        {
+          name: '水晶项链',
+          image_src: 'http://hucongcong.cn:8080/upload/pic_floor03_4@2x.png',
+          image_width: '193',
+          open_type: 'navigate',
+          navigator_url: '/pages/goods_list?query=水晶项链'
+        },
+        {
+          name: '情侣表',
+          image_src: 'http://hucongcong.cn:8080/upload/pic_floor03_5@2x.png',
+          image_width: '273',
+          open_type: 'navigate',
+          navigator_url: '/pages/goods_list?query=情侣表'
+        }
+      ]
+    }
+  ],
+  meta: { msg: '获取成功', status: 200 }
+}
+
+export default class Index extends wepy.page {
+  config = {
+    navigationBarBackgroundColor: '#ff2d4a',
+    navigationBarTitleText: '品优购',
+    navigationBarTextStyle: 'white'
+  }
+
+  // 存储数据
+  data = {
+    slides: [],
+    navs: [],
+    floors: [],
+    isShow: true
+  }
+  // 存方法
+  methods = {
+    // 回顶部的方法
+    goTop() {
+      wepy.pageScrollTo({
+        scrollTop: 0,
+        duration: 500
+      })
+    }
+  }
+
+  onLoad() {
+    this.getSwiperSlides()
+    this.getNavs()
+    this.getFloors()
+  }
+
+  // 加载时请求数据的方法
+  async getSwiperSlides() {
+    let res = await fetch('home/swiperdata')
+    // console.log(res)
+    this.slides = res.data.data
+    // 异步操作需要同步数据
+    this.$apply()
+  }
+
+  async getNavs() {
+    let res = await fetch('home/catitems')
+    // console.log(res)
+    this.navs = res.data.data
+    // 异步操作需要同步数据
+    this.$apply()
+  }
+
+  async getFloors() {
+    let res = await fetch('home/floordata')
+    res = floorData
+    // console.log(res)
+    this.floors = res.data
+    // 异步操作需要同步数据
+    this.$apply()
+  }
+
+  // 监听页面滚动
+  onPageScroll(h) {
+    // console.log(h.scrollTop)
+    if (h.scrollTop > 350) {
+      this.isShow = false
+    } else {
+      this.isShow = true
+    }
+
+    // onPageScroll 本来就是异步的 需要数据同步
+    this.$apply()
+  }
+}
+</script>
+
+<style lang="less">
+@import '../assets/wxss/icon-font.wxss';
+
+page {
+  background-color: #eee;
+  padding-top: 100rpx;
+}
+/* 搜索框 */
+.search {
+  padding: 20rpx 16rpx;
+  background-color: #ff2d4a;
+  width: 718rpx;
+  height: 60rpx;
+  position: fixed;
+  top: 0;
+  z-index: 9;
+
+  .inner {
+    width: 700rpx;
+    height: 60rpx;
+    background-color: #fff;
+    border-radius: 10rpx;
+    color: #bbb;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .icon-sousuo {
+      font-size: 36rpx;
+    }
+    .txt {
+      margin-left: 16rpx;
+      font-size: 28rpx;
+    }
+  }
+}
+
+/*  轮播图  */
+.slides {
+  width: 750rpx;
+  height: 340rpx;
+
+  image {
+    width: 750rpx;
+    height: 340rpx;
+  }
+}
+/* 导航 */
+.nav {
+  padding: 24rpx 0 29rpx;
+  background-color: #fff;
+  display: flex;
+  justify-content: space-around;
+
+  &-item {
+    image {
+      width: 128rpx;
+      height: 128rpx;
+    }
+  }
+}
+/* 楼层 */
+.floor {
+  &-item {
+    padding-top: 30rpx;
+
+    .title {
+      image {
+        width: 750rpx;
+        height: 59rpx;
+      }
+    }
+
+    .content {
+      display: flex;
+      padding: 20rpx 16rpx;
+
+      .left-image {
+        margin-right: 10rpx;
+
+        image {
+          width: 232rpx;
+          height: 386rpx;
+          /* 解决图片下面留的空隙 对齐问题 */
+          vertical-align: middle;
+        }
+      }
+
+      .right-images {
+        image {
+          width: 233rpx;
+          height: 188rpx;
+
+          &:nth-child(-n + 2) {
+            vertical-align: middle;
+            margin-bottom: 10rpx;
+          }
+
+          &:nth-child(odd) {
+            margin-right: 10rpx;
+          }
+        }
+      }
+    }
+  }
+}
+/* 回顶部 */
+.toTop {
+  position: fixed;
+  bottom: 30rpx;
+  right: 30rpx;
+  width: 100rpx;
+  height: 100rpx;
+  background-color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border-radius: 10rpx;
+
+  .icon-jiantoushang {
+    font-size: 40rpx;
+  }
+  .toTopTxt {
+    font-size: 30rpx;
+  }
+}
+</style>
